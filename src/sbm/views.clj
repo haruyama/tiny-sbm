@@ -44,7 +44,7 @@
             (map (fn [t]
                    (make-search-remove-tag-link
                      (dissoc
-                       (let [new-tags (set (disj tags t))]
+                       (let [new-tags (disj tags t)]
                          (if (empty? new-tags)
                            (dissoc q :tags)
                            (conj q [:tags (clojure.string/join " " new-tags)]))
@@ -89,7 +89,7 @@
   (let [n (. count getName)
         c (. count getCount)
         old-tags (get q :tags)
-        tags     (if old-tags (str old-tags  " " n)  n)
+        tags     (if old-tags (clojure.string/join " " (conj (set (clojure.string/split old-tags #"\s+"))  n))  n)
         ]
     (make-search-link (dissoc (conj q [:tags tags]) :p)
                       (str n "(" c ")"))

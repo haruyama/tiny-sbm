@@ -24,7 +24,7 @@
                                           (str "timestamp:[" ym "-01T00:00:00Z TO " ym "-01T00:00:00Z+1MONTH]")))
                                       )]
                                    (if (contains? q :tags)
-                                     (let [tags (set (clojure.string/split (get q :tags) #"\s+"))]
+                                     (let [tags (distinct (clojure.string/split (get q :tags) #"\s+"))]
                                        (map #(str "tag:\"" (org.apache.solr.client.solrj.util.ClientUtils/escapeQueryChars %) "\"" ) tags)))
                                    )))
     nil
