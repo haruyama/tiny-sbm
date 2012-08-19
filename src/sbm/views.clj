@@ -133,11 +133,21 @@
                 ))
    ])
 
-(defn make-result-unit [result]
+(defn snippet-replace [str]
+  (clojure.string/replace
+    (clojure.string/replace str #"\t" "<strong>")
+    #"\n" "</strong>"
+  ))
+
+(defn make-result-unit [result highlighting]
   (let [
+        uuid (. result getFieldValue "uuid")
         url   (. result getFieldValue "url")
         title (. result getFieldValue "title")
         desc  (. result getFieldValue "desc")
+        hi    (if highlighting (. highlighting get uuid))
+        desc-snippets (if hi (. hi get "desc"))
+        snippet (if desc-snippets (. desc-snippets get 0))
         ]
     [:div.result.hero-unit
      [:h1 (link-to (str "/show/"(u url)) (if title (h title) "title not found"))]
@@ -145,7 +155,9 @@
       (if (re-find #"\Ahttps?://" url)
             (link-to url (h url))
             (h url))]
-     (if desc [:p (h desc)])
+     (if snippet
+       [:p (snippet-replace (h snippet)) ]
+       (if desc [:p (h desc)]))
      ])
   )
 
@@ -168,7 +180,7 @@
   )
 
 
-(defn- search-right [results q]
+(defn- search-right [results highlighting q]
   (let [
         num-found (. results getNumFound)
         start     (. results getStart)
@@ -179,7 +191,7 @@
        [:div.alert.alert-error   "Not Found"]
        )
      (vector :ul.results.unstyled
-             (map #(vector :li.result (make-result-unit %)) results)
+             (map #(vector :li.result (make-result-unit % highlighting)) results)
              )
      (let [
            page      (+ 1 (quot start sbm.settings/rows))
@@ -197,6 +209,7 @@
                      (. (. (. response getFacetDates) get 0) getValues)
                      q)
         (search-right (. response getResults)
+                      (. response getHighlighting)
                       q)
         )
   )

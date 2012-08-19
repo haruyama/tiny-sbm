@@ -5,6 +5,7 @@
 
 (def sort-order [["timestamp" "desc"]])
 (def facet-condtions [["facet" "on"] ["facet.field" "tag"] ["facet.date" "timestamp"] ["facet.date.start" "NOW/MONTH-10YEARS"] ["facet.date.end" "NOW"] ["facet.date.gap" "+1MONTHS"] ["facet.mincount" "1"]])
+(def highlignt-conditions [["hl" "on"] ["hl.fl" "desc"] ["hl.simple.pre" "\t"] ["hl.simple.post" "\n"]])
 (def mlt-condtions [["mlt" "on"] ["mlt.fl" "body"]])
 
 
@@ -40,9 +41,10 @@
                        )
         start       (* sbm.settings/rows (- (Integer. (get q :p "1")) 1))
         solr-server (solr/get-server)
-        solr-query  (solr/make-query (make-q-param q) start sbm.settings/rows sort-order facet-condtions)
+        solr-query  (solr/make-query (make-q-param q) start sbm.settings/rows sort-order (concat highlignt-conditions facet-condtions))
         response    (. solr-server query solr-query)
         ]
+    (println response)
     (sbm.views/search response q
                       )))
 

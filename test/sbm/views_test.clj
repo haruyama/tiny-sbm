@@ -41,10 +41,13 @@
               [:div.result.hero-unit [:h1 [:a {:href (java.net.URI. "/show/http%3A%2F%2Fmixi.jp%2F")} '("mixi")]] [:p [:a {:href (java.net.URI. "http://mixi.jp/")} '("http://mixi.jp/")]]
                [:p "description"]
                ]
-              (sbm.views/make-result-unit (doto (org.apache.solr.common.SolrDocument.) (. put "url" "http://mixi.jp/") (. put "title" "mixi") (.put "desc" "description")))
+              (sbm.views/make-result-unit (doto (org.apache.solr.common.SolrDocument.) (. put "url" "http://mixi.jp/") (. put "title" "mixi") (.put "desc" "description")) nil)
 
               [:div.result.hero-unit [:h1 [:a {:href (java.net.URI. "/show/javascript%3Ahoge")} '("&lt;&amp;&gt;")]] [:p "javascript:hoge"]
                [:p "&quot;&lt;&amp;&gt;"]
                ]
-              (sbm.views/make-result-unit (doto (org.apache.solr.common.SolrDocument.) (. put "url" "javascript:hoge") (. put "title" "<&>") (.put "desc" "\"<&>")))
+              (sbm.views/make-result-unit (doto (org.apache.solr.common.SolrDocument.) (. put "url" "javascript:hoge") (. put "title" "<&>") (.put "desc" "\"<&>")) nil)
+
+              ;TODO: highlighting
+
          ))
