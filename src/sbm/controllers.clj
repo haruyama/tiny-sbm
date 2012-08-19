@@ -43,7 +43,6 @@
         solr-query  (solr/make-query (make-q-param q) start sbm.settings/rows sort-order facet-condtions)
         response    (. solr-server query solr-query)
         ]
-    (println params)
     (sbm.views/search response q
                       )))
 
