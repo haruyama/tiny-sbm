@@ -107,14 +107,17 @@
                       (str d "(" c ")")))
   )
 
-(defn- make-mlt-link [mlt]
+(defn make-mlt-unit [mlt]
   (let [
         url   (. mlt getFieldValue "url")
         title (. mlt getFieldValue "title")
         ]
     [:div.mlt.hero-unit
      [:p (link-to (str "/show/"(u url)) (if title (h title) "title not found"))]
-     [:p (link-to (if (re-find #"\Ahttps?://" url) url nil) (h url))]
+     [:p
+      (if (re-find #"\Ahttps?://" url)
+            (link-to url (h url))
+            (h url))]
      ])
   )
 
@@ -130,7 +133,7 @@
                 ))
    ])
 
-(defn- make-result-view [result]
+(defn make-result-unit [result]
   (let [
         url   (. result getFieldValue "url")
         title (. result getFieldValue "title")
@@ -138,7 +141,10 @@
         ]
     [:div.result.hero-unit
      [:h1 (link-to (str "/show/"(u url)) (if title (h title) "title not found"))]
-     [:p (link-to (if (re-find #"\Ahttps?://" url)  url) (h url))]
+     [:p
+      (if (re-find #"\Ahttps?://" url)
+            (link-to url (h url))
+            (h url))]
      (if desc [:p (h desc)])
      ])
   )
@@ -173,7 +179,7 @@
        [:div.alert.alert-error   "Not Found"]
        )
      (vector :ul.results.unstyled
-             (map #(vector :li.result (make-result-view %)) results)
+             (map #(vector :li.result (make-result-unit %)) results)
              )
      (let [
            page      (+ 1 (quot start sbm.settings/rows))
@@ -223,7 +229,7 @@
 
 (defn- show-left [more-like-this]
   (vector :ul.mlts.unstyled
-          (map #(vector :li.mlt (make-mlt-link %)) more-like-this)
+          (map #(vector :li.mlt (make-mlt-unit %)) more-like-this)
           )
   )
 

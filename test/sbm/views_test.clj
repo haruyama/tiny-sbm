@@ -26,3 +26,25 @@
          (are [x y] (= x y)
               [:a {:href (java.net.URI. "/search?date=2012-08&q=a")} '("&lt;&amp;&gt;")] (sbm.views/make-search-link {:q "a" :date "2012-08"} "<&>")
          ))
+
+(deftest test-make-mlt-unit
+         (are [x y] (= x y)
+              [:div.mlt.hero-unit [:p [:a {:href (java.net.URI. "/show/http%3A%2F%2Fmixi.jp%2F")} '("mixi")]] [:p [:a {:href (java.net.URI. "http://mixi.jp/")} '("http://mixi.jp/")]]]
+              (sbm.views/make-mlt-unit (doto (org.apache.solr.common.SolrDocument.) (. put "url" "http://mixi.jp/") (. put "title" "mixi")))
+
+              [:div.mlt.hero-unit [:p [:a {:href (java.net.URI. "/show/javascript%3Ahoge")} '("&lt;&amp;&gt;")]] [:p "javascript:hoge"]]
+              (sbm.views/make-mlt-unit (doto (org.apache.solr.common.SolrDocument.) (. put "url" "javascript:hoge") (. put "title" "<&>")))
+         ))
+
+(deftest test-make-result-unit
+         (are [x y] (= x y)
+              [:div.result.hero-unit [:h1 [:a {:href (java.net.URI. "/show/http%3A%2F%2Fmixi.jp%2F")} '("mixi")]] [:p [:a {:href (java.net.URI. "http://mixi.jp/")} '("http://mixi.jp/")]]
+               [:p "description"]
+               ]
+              (sbm.views/make-result-unit (doto (org.apache.solr.common.SolrDocument.) (. put "url" "http://mixi.jp/") (. put "title" "mixi") (.put "desc" "description")))
+
+              [:div.result.hero-unit [:h1 [:a {:href (java.net.URI. "/show/javascript%3Ahoge")} '("&lt;&amp;&gt;")]] [:p "javascript:hoge"]
+               [:p "&quot;&lt;&amp;&gt;"]
+               ]
+              (sbm.views/make-result-unit (doto (org.apache.solr.common.SolrDocument.) (. put "url" "javascript:hoge") (. put "title" "<&>") (.put "desc" "\"<&>")))
+         ))
