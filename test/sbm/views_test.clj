@@ -17,6 +17,7 @@
               "<a href=\"/search?q=%26&amp;tags=b\"><span class=\"label\">remove tag: &lt;&amp;&gt;</span></a>" (html (sbm.views/make-search-remove-tag-link {:q "&" :tags "b"} "<&>"))
          ))
 
+
 (deftest test-make-search-remove-date-link
          (are [x y] (= x y)
               [:a {:href (java.net.URI. "/search?date=2012-08&q=a")} '([:span.label "remove date: &lt;&amp;&gt;"])] (sbm.views/make-search-remove-date-link {:q "a" :date "2012-08"} "<&>")
@@ -43,6 +44,16 @@
                ]
               (sbm.views/make-result-unit (doto (org.apache.solr.common.SolrDocument.) (. put "url" "http://mixi.jp/") (. put "title" "mixi") (.put "desc" "description")) nil)
 
+              [:div.result.hero-unit [:h1 [:a {:href (java.net.URI. "/show/http%3A%2F%2Fmixi.jp%2F%26")} '("mixi")]] [:p [:a {:href (java.net.URI. "http://mixi.jp/&")} '("http://mixi.jp/&amp;")]]
+               [:p "description"]
+               ]
+              (sbm.views/make-result-unit (doto (org.apache.solr.common.SolrDocument.) (. put "url" "http://mixi.jp/&") (. put "title" "mixi") (.put "desc" "description")) nil)
+
+              [:div.result.hero-unit [:h1 [:a {:href (java.net.URI. "/show/http%3A%2F%2Fmixi.jp%2F%3C%26")} '("mixi")]] [:p [:a {:href ""} '("http://mixi.jp/&lt;&amp;")]]
+               [:p "description"]
+               ]
+              (sbm.views/make-result-unit (doto (org.apache.solr.common.SolrDocument.) (. put "url" "http://mixi.jp/<&") (. put "title" "mixi") (.put "desc" "description")) nil)
+
               [:div.result.hero-unit [:h1 [:a {:href (java.net.URI. "/show/javascript%3Ahoge")} '("&lt;&amp;&gt;")]] [:p "javascript:hoge"]
                [:p "&quot;&lt;&amp;&gt;"]
                ]
@@ -51,3 +62,16 @@
               ;TODO: highlighting
 
          ))
+
+(deftest test-make-pagination
+         (are [x y] (= x y)
+
+              [:div.pagination [:ul (list [:li {:class "active"} [:a {:href (java.net.URI. "/search?p=1")} '("1")]] [:li nil [:a {:href (java.net.URI. "/search?p=2")} '("2")]]
+                                          [:li nil [:a {:href (java.net.URI. "/search?p=3")} '("3")]] [:li nil [:a {:href (java.net.URI. "/search?p=4")} '("4")]]
+                                          [:li nil [:a {:href (java.net.URI. "/search?p=5")} '("5")]] [:li [:a {:href (java.net.URI. "/search?p=2")} '("Next")]]
+                                          )]]
+              (sbm.views/make-pagination nil 1 10 5)
+
+              ;TODO: more tests
+         ))
+

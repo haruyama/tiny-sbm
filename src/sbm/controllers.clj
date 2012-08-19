@@ -44,7 +44,6 @@
         solr-query  (solr/make-query (make-q-param q) start sbm.settings/rows sort-order (concat highlignt-conditions facet-condtions))
         response    (. solr-server query solr-query)
         ]
-    (println response)
     (sbm.views/search response q
                       )))
 

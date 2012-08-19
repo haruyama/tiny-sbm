@@ -1,14 +1,17 @@
 (ns sbm.views
   (:require sbm.settings)
-  (:use [hiccup core page form element]))
-
-(defn- urlencode [s]
-  (. java.net.URLEncoder encode s "UTF-8")
-  )
+  (:use [hiccup core page form element util def]))
 
 (defn- u [s]
-  (urlencode s)
-  )
+  (url-encode s))
+
+(defelem safe-link-to
+         [url & content]
+         (try
+           [:a {:href (to-uri url)} content]
+           (catch Exception e
+             [:a {:href ""} content]
+             )))
 
 (defn- param2str [n v]
   (if (instance? java.lang.String v)
@@ -18,13 +21,12 @@
 (defn make-query-param [q]
   (clojure.string/join "&"
                        (map #(let [n (subs (str (first %)) 1)
-                                   v (second %)
-                                   ]
+                                   v (second %)]
                                (param2str n v))
                             q)))
 
 (defn- make-search-remove-link [q text param]
-  (link-to (str "/search?" (make-query-param q))
+  (safe-link-to (str "/search?" (make-query-param q))
            [:span.label (h (str "remove " param ": " text))]))
 
 (defn make-search-remove-tag-link [q text]
@@ -37,7 +39,7 @@
   [:div.navbar
    [:div.navbar-inner
     [:div.container
-     (link-to {:class "brand"} "/" (h  title) )
+     (safe-link-to {:class "brand"} "/" (h  title) )
      [:ul.nav
       (concat
         [[:li.offset3
@@ -85,27 +87,26 @@
         ]]]]))
 
 (defn make-search-link [q text]
-  (link-to (str "/search?" (make-query-param q))
-           (h text)))
+  (safe-link-to (str "/search?" (make-query-param q)) (h text)))
 
 (defn- make-tag-link [count q]
-  (let [n (. count getName)
-        c (. count getCount)
+  (let [
+        n        (. count getName)
+        c        (. count getCount)
         old-tags (get q :tags)
         tags     (if old-tags (conj old-tags n) n)
         ]
     (make-search-link (dissoc (conj q [:tags tags]) :p)
-                      (str n "(" c ")"))
-    ))
+                      (str n "(" c ")"))))
 
 (defn- make-date-link [count q]
-  (let [n (. count getName)
+  (let [
+        n (. count getName)
         d (subs n 0 (. n indexOf "-01T"))
         c (. count getCount)
         ]
     (make-search-link (dissoc (conj q [:date d]) :p)
-                      (str d "(" c ")")))
-  )
+                      (str d "(" c ")"))))
 
 (defn make-mlt-unit [mlt]
   (let [
@@ -113,13 +114,12 @@
         title (. mlt getFieldValue "title")
         ]
     [:div.mlt.hero-unit
-     [:p (link-to (str "/show/"(u url)) (if title (h title) "title not found"))]
+     [:p (safe-link-to (str "/show/"(u url)) (if title (h title) "title not found"))]
      [:p
       (if (re-find #"\Ahttps?://" url)
-            (link-to url (h url))
+            (safe-link-to url (h url))
             (h url))]
-     ])
-  )
+     ]))
 
 
 (defn- search-left [tags dates q]
@@ -150,18 +150,17 @@
         snippet (if desc-snippets (. desc-snippets get 0))
         ]
     [:div.result.hero-unit
-     [:h1 (link-to (str "/show/"(u url)) (if title (h title) "title not found"))]
+     [:h1 (safe-link-to (str "/show/"(u url)) (if title (h title) "title not found"))]
      [:p
       (if (re-find #"\Ahttps?://" url)
-            (link-to url (h url))
+            (safe-link-to url (h url))
             (h url))]
      (if snippet
        [:p (snippet-replace (h snippet)) ]
        (if desc [:p (h desc)]))
-     ])
-  )
+     ]))
 
-(defn- make-pagination [q page max-page range]
+(defn make-pagination [q page max-page range]
   (let [half-range (quot range 2)
         start      (if (> (- page half-range) 0) (- page half-range) 1)
         end        (if (< (+ start range -1) max-page) (+ start range -1) max-page)
@@ -169,16 +168,13 @@
     [:div.pagination
      (vector :ul
              (concat
-               [ (if (not= page 1) (vector :li (make-search-link (conj q [:p (str (- page 1))]) "Prev")))]
+               (if (not= page 1) [(vector :li (make-search-link (conj q [:p (str (- page 1))]) "Prev"))])
                (map
-                 #(vector :li (make-search-link (conj q [:p (str %)]) (h (str %))))
+                 #(vector :li (if (= page %) {:class "active"}) (make-search-link (conj q [:p (str %)]) (str %)))
                  (clojure.core/range start (+ end 1)))
-               [(if (not= page end) (vector :li (make-search-link (conj q [:p (str (+ page 1))]) "Next")))])
-
-             )
-     ])
-  )
-
+               (if (not= page end) [(vector :li (make-search-link (conj q [:p (str (+ page 1))]) "Next"))])
+             ))
+     ]))
 
 (defn- search-right [results highlighting q]
   (let [
@@ -211,13 +207,11 @@
         (search-right (. response getResults)
                       (. response getHighlighting)
                       q)
-        )
-  )
+        ))
 
 
 (defn index [response]
-  (search response {})
-  )
+  (search response {}))
 
 (defn- show-right [results]
   (let [
@@ -233,8 +227,8 @@
              desc  (. result getFieldValue "desc")
              ]
          [:div.result.hero-unit
-          [:h1 (link-to (str "/show/"(u url)) (if title (h title) "title not found"))]
-          [:p (link-to (if (re-find #"\Ahttps?://" url)  url) (h url))]
+          [:h1 (safe-link-to (str "/show/"(u url)) (if title (h title) "title not found"))]
+          [:p (safe-link-to (if (re-find #"\Ahttps?://" url)  url) (h url))]
           (if desc [:p (h desc)])
           ])
        )
@@ -243,13 +237,11 @@
 (defn- show-left [more-like-this]
   (vector :ul.mlts.unstyled
           (map #(vector :li.mlt (make-mlt-unit %)) more-like-this)
-          )
-  )
+          ))
 
 (defn show [response]
   (page "Tiny SBM"
         nil
         (show-left (take sbm.settings/more-like-this-rows  (. (.  (. response getResponse) get "moreLikeThis") getVal 0)))
         (show-right (. response getResults))
-        )
-  )
+        ))
