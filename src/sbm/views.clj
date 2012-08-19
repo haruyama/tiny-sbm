@@ -10,23 +10,28 @@
   (urlencode s)
   )
 
-(defn- make-query-param [q]
+(defn- param2str [n v]
+  (if (instance? java.lang.String v)
+    (str (u n) "=" (u v))
+    (clojure.string/join "&" (map #(str (u n) "[]=" (u %)) v))))
+
+(defn make-query-param [q]
   (clojure.string/join "&"
                        (map #(let [n (subs (str (first %)) 1)
                                    v (second %)
                                    ]
-                               (str (u n) "=" (u (second %))))
+                               (param2str n v))
                             q)))
 
-(defn- make-search-remove-tag-link [q text]
-  (if (not (re-matches #"\A\s*\z" text ))
-    (link-to (str "/search?" (make-query-param q))
-             [:span.label (str "remove tag: \"" (h text) "\"")])))
-
-(defn- make-search-remove-date-link [q text]
+(defn- make-search-remove-link [q text param]
   (link-to (str "/search?" (make-query-param q))
-           [:span.label (str "remove date\"" (h text) "\"")]))
+           [:span.label (h (str "remove " param ": " text))]))
 
+(defn make-search-remove-tag-link [q text]
+  (make-search-remove-link q text "tag"))
+
+(defn make-search-remove-date-link [q text]
+  (make-search-remove-link q text "date"))
 
 (defn- navbar [title q]
   [:div.navbar
@@ -40,14 +45,14 @@
                    (text-field {:value (get q :q)} "q"))
           ]]
         (if (contains? q :tags)
-          (let [tags (set (clojure.string/split (get q :tags) #"\s+"))]
+          (let [tags (get q :tags)]
             (map (fn [t]
                    (make-search-remove-tag-link
                      (dissoc
                        (let [new-tags (disj tags t)]
                          (if (empty? new-tags)
                            (dissoc q :tags)
-                           (conj q [:tags (clojure.string/join " " new-tags)]))
+                           (conj q [:tags new-tags]))
                          )
                        :p)
                      t))
@@ -79,9 +84,7 @@
         right
         ]]]]))
 
-
-
-(defn- make-search-link [q text]
+(defn make-search-link [q text]
   (link-to (str "/search?" (make-query-param q))
            (h text)))
 
@@ -89,7 +92,7 @@
   (let [n (. count getName)
         c (. count getCount)
         old-tags (get q :tags)
-        tags     (if old-tags (clojure.string/join " " (conj (set (clojure.string/split old-tags #"\s+"))  n))  n)
+        tags     (if old-tags (conj old-tags n) n)
         ]
     (make-search-link (dissoc (conj q [:tags tags]) :p)
                       (str n "(" c ")"))

@@ -24,8 +24,8 @@
                                           (str "timestamp:[" ym "-01T00:00:00Z TO " ym "-01T00:00:00Z+1MONTH]")))
                                       )]
                                    (if (contains? q :tags)
-                                     (let [tags (distinct (clojure.string/split (get q :tags) #"\s+"))]
-                                       (map #(str "tag:\"" (org.apache.solr.client.solrj.util.ClientUtils/escapeQueryChars %) "\"" ) tags)))
+                                     (let [tags (get q :tags)]
+                                       (map #(str "tag:" (org.apache.solr.client.solrj.util.ClientUtils/escapeQueryChars %)) tags)))
                                    )))
     nil
     )
@@ -33,13 +33,19 @@
 
 (defn search [params]
   (let [
-        q           (get params :params)
+        raw-q        (get params :params)
+        q            (if (instance? java.lang.String (get raw-q :tags))
+                       (conj raw-q [:tags (set [(get raw-q :tags)])])
+                       (conj raw-q [:tags (set (get raw-q :tags))])
+                       )
         start       (* sbm.settings/rows (- (Integer. (get q :p "1")) 1))
         solr-server (solr/get-server)
         solr-query  (solr/make-query (make-q-param q) start sbm.settings/rows sort-order facet-condtions)
         response    (. solr-server query solr-query)
         ]
-    (sbm.views/search response q)))
+    (println params)
+    (sbm.views/search response q
+                      )))
 
 
 (defn index []
