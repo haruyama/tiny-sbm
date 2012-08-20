@@ -20,7 +20,7 @@
 
 (defn make-query-param [q]
   (clojure.string/join "&"
-                       (map #(let [n (subs (str (first %)) 1)
+                       (map #(let [n (name (first %))
                                    v (second %)]
                                (param2str n v))
                             q)))
