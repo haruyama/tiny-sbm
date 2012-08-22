@@ -225,11 +225,13 @@
              url   (. result getFieldValue "url")
              title (. result getFieldValue "title")
              desc  (. result getFieldValue "desc")
+             body  (. result getFieldValue "body")
              ]
          [:div.result.hero-unit
           [:h1 (safe-link-to (str "/show/"(u url)) (if title (h title) "title not found"))]
           [:p (safe-link-to (if (re-find #"\Ahttps?://" url)  url) (h url))]
           (if desc [:p (h desc)])
+          (if body [:p (h body)  ])
           ])
        )
      ]))
