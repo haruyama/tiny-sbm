@@ -72,6 +72,7 @@
     [:head
      [:title (h title)]
      (include-css "/css/bootstrap.css")
+     (include-css "/css/sbm.css")
      (include-js "/js/jquery-1.8.0.min.js")
      (include-js "/js/bootstrap.js")
      ]
@@ -113,7 +114,7 @@
         url   (. mlt getFieldValue "url")
         title (. mlt getFieldValue "title")
         ]
-    [:div.mlt.hero-unit
+    [:div.mlt.result-unit
      [:p (safe-link-to (str "/show/"(u url)) (if title (h title) "title not found"))]
      [:p
       (if (re-find #"\Ahttps?://" url)
@@ -148,13 +149,17 @@
         hi    (if highlighting (. highlighting get uuid))
         desc-snippets (if hi (. hi get "desc"))
         snippet (if desc-snippets (. desc-snippets get 0))
+        timestamp (. result getFieldValue "timestamp")
         ]
-    [:div.result.hero-unit
+    [:div.result.result-unit
      [:h1 (safe-link-to (str "/show/"(u url)) (if title (h title) "title not found"))]
      [:p
       (if (re-find #"\Ahttps?://" url)
             (safe-link-to url (h url))
             (h url))]
+     (if timestamp
+       [:p (h timestamp)]
+       )
      (if snippet
        [:p (snippet-replace (h snippet)) ]
        (if desc [:p (h desc)]))
@@ -226,10 +231,14 @@
              title (. result getFieldValue "title")
              desc  (. result getFieldValue "desc")
              body  (. result getFieldValue "body")
+             timestamp (. result getFieldValue "timestamp")
              ]
-         [:div.result.hero-unit
+         [:div.result.result-unit
           [:h1 (safe-link-to (str "/show/"(u url)) (if title (h title) "title not found"))]
           [:p (safe-link-to (if (re-find #"\Ahttps?://" url)  url) (h url))]
+          (if timestamp
+            [:p (h timestamp)]
+            )
           (if desc [:p (h desc)])
           (if body [:p (h body)  ])
           ])
