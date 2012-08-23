@@ -90,7 +90,7 @@
 (defn make-search-link [q text]
   (safe-link-to (str "/search?" (make-query-param q)) (h text)))
 
-(defn- make-tag-link [count q]
+(defn- make-tag-facet-link [count q]
   (let [
         n        (. count getName)
         c        (. count getCount)
@@ -100,7 +100,11 @@
     (make-search-link (dissoc (conj q [:tags tags]) :p)
                       (str n "(" c ")"))))
 
-(defn- make-date-link [count q]
+(defn- make-tag-link [tag]
+  [:li (make-search-link {:tags (set [tag])} tag)]
+  )
+
+(defn- make-date-facet-link [count q]
   (let [
         n (. count getName)
         d (subs n 0 (. n indexOf "-01T"))
@@ -126,10 +130,10 @@
 (defn- search-left [tags dates q]
   [:div.left
    (vector :ul.facets.tags
-           (map #(vector :li.facet (make-tag-link % q)) tags)
+           (map #(vector :li.facet (make-tag-facet-link % q)) tags)
            )
    (vector :ul.facets.dates
-           (map #(vector :li.facet (make-date-link % q))
+           (map #(vector :li.facet (make-date-facet-link % q))
                 (reverse dates)
                 ))
    ])
@@ -150,6 +154,7 @@
         desc-snippets (if hi (. hi get "desc"))
         snippet (if desc-snippets (. desc-snippets get 0))
         timestamp (. result getFieldValue "timestamp")
+        tags (. result getFieldValue "tag")
         ]
     [:div.result.result-unit
      [:h1 (safe-link-to (str "/show/"(u url)) (if title (h title) "title not found"))]
@@ -159,6 +164,11 @@
             (h url))]
      (if timestamp
        [:p (h timestamp)]
+       )
+     (if tags
+       [:ul
+        (map make-tag-link (clojure.string/split tags #"\s+"))
+        ]
        )
      (if snippet
        [:p (snippet-replace (h snippet)) ]
@@ -232,12 +242,18 @@
              desc  (. result getFieldValue "desc")
              body  (. result getFieldValue "body")
              timestamp (. result getFieldValue "timestamp")
+             tags (. result getFieldValue "tag")
              ]
          [:div.result.result-unit
           [:h1 (safe-link-to (str "/show/"(u url)) (if title (h title) "title not found"))]
           [:p (safe-link-to (if (re-find #"\Ahttps?://" url)  url) (h url))]
           (if timestamp
             [:p (h timestamp)]
+            )
+          (if tags
+            [:ul
+             (map make-tag-link (clojure.string/split tags #"\s+"))
+             ]
             )
           (if desc [:p (h desc)])
           (if body [:p (h body)  ])
