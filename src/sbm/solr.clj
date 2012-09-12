@@ -20,10 +20,11 @@
     (. query setRows  (Integer. rows))
     (doseq [sort-param sort-params]
       (if (= (second sort-param) "asc")
-        (. query setSortField (first sort-param) SolrQuery$ORDER/asc)
-        (. query setSortField (first sort-param) SolrQuery$ORDER/desc)))
+        (. query addSortField (first sort-param) SolrQuery$ORDER/asc)
+        (. query addSortField (first sort-param) SolrQuery$ORDER/desc)))
     (doseq [option options]
-      ;      (. query setParam (first option) (second option)))
-      (. query setParam (first option) (into-array [(second option)])))
+      (if (coll? (second option))
+        (. query setParam (first option) (into-array (second option)))
+        (. query setParam (first option) (into-array [(second option)]))))
     query
     ))
